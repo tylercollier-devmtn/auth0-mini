@@ -20,5 +20,12 @@
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
   },
-  "proxy": "http://localhost:3040"
+  "proxy": {
+    "/auth/callback": {
+      "target": "http://localhost:3040"
+    },
+    "/api": {
+      "target": "http://localhost:3040"
+    }
+  }
 }
