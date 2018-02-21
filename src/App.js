@@ -6,7 +6,10 @@ import axios from 'axios';
 class App extends Component {
   constructor() {
     super();
-    this.state = {};
+    this.state = {
+      user: null,
+      secureDataResponse: null,
+    };
     this.logout = this.logout.bind(this);
     this.fetchSecureData = this.fetchSecureData.bind(this);
   }
