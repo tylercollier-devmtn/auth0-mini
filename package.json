@@ -2,7 +2,14 @@
   "name": "auth0-mini",
   "version": "0.1.0",
   "private": true,
+  "main": "server/index.js",
   "dependencies": {
+    "axios": "^0.18.0",
+    "body-parser": "^1.18.2",
+    "dotenv": "^5.0.0",
+    "express": "^4.16.2",
+    "express-session": "^1.15.6",
+    "massive": "^4.6.6",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "react-scripts": "1.1.1"
@@ -12,5 +19,6 @@
     "build": "react-scripts build",
     "test": "react-scripts test --env=jsdom",
     "eject": "react-scripts eject"
-  }
+  },
+  "proxy": "http://localhost:3040"
 }
