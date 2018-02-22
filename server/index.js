@@ -16,8 +16,43 @@ app.use(session({
 }));
 app.use(express.static(`${__dirname}/../build`));
 
-app.post('/auth/callback', (req, res) => {
-  // Add code here
+app.get('/auth/callback', (req, res) => {
+  axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, {
+    client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
+    client_secret: process.env.AUTH0_CLIENT_SECRET,
+    code: req.query.code,
+    grant_type: 'authorization_code',
+    redirect_uri: `http://${req.headers.host}/auth/callback`,
+  }).then(accessTokenResponse => {
+    return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessTokenResponse.data.access_token}`).then(userInfoResponse => {
+      const userData = userInfoResponse.data;
+      console.log('userInfoResponse.data', userInfoResponse.data);
+      return req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
+        if (users.length) {
+          const user = {
+            name: userData.name,
+            email: userData.email,
+            picture: userData.picture,
+          };
+          req.session.user = user;
+          res.redirect('/');
+        } else {
+          return req.app.get('db').create_user([userData.sub, userData.email, userData.name, userData.picture]).then(newUsers => {
+            const user = {
+              name: newUsers[0].profile_name,
+              email: newUsers[0].email,
+              picture: newUsers[0].picture,
+            };
+            req.session.user = user;
+            res.redirect('/');
+          });
+        }
+      });
+    });
+  }).catch(error => {
+    console.log('server error', error);
+    res.send("An error happened on the server!");
+  })
 });
 
 app.post('/api/logout', (req, res) => {
