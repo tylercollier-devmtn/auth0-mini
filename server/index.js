@@ -16,7 +16,7 @@ app.use(session({
 }));
 app.use(express.static(`${__dirname}/../build`));
 
-app.post('/auth/callback', (req, res) => {
+app.get('/auth/callback', (req, res) => {
   // Add code here
 });
 
