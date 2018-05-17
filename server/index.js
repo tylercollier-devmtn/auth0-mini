@@ -16,37 +16,65 @@ app.use(session({
 }));
 app.use(express.static(`${__dirname}/../build`));
 
+
+// STEP 1.)
+//send code recieved from client to auth0 to recieve back and access token
 app.get('/auth/callback', (req, res) => {
-  axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, {
-    client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
-    client_secret: process.env.REACT_APP_AUTH0_CLIENT_SECRET,
-    code: req.query.code,
-    grant_type: 'authorization_code',
-    redirect_uri: `http://${req.headers.host}/auth/callback`,
-  }).then(accessTokenResponse => {
-    const accessToken = accessTokenResponse.data.access_token;
-    return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`).then(userInfoResponse => {
-      const userData = userInfoResponse.data;
-      return req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
+
+//object payload being send to auth0 that includes our code as req.query.code
+
+let payLoad = {
+  client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
+  client_secret: process.env.REACT_APP_AUTH0_CLIENT_SECRET,
+  code: req.query.code,
+  grant_type: 'authorization_code',
+  redirect_uri: `http://${req.headers.host}/auth/callback`
+}
+
+//STEP 2.)
+// trading above payload for access token
+
+function tradeCodeForAccessToken(){
+  return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payLoad)
+}
+
+//STEP 3.)
+// trade accesToken for user info
+
+function tradeAccessTokenForUserInfo(accessTokenResponse){
+  const accessToken = accessTokenResponse.data.access_token;
+  return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`) 
+}
+
+//STEP 4.)
+
+// store user info response in session and database
+function storeUserInfoInDataBase(userInfoResponse) {
+
+  const userData = userInfoResponse.data;
+  return (
+      req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
         if (users.length) {
           const user = users[0];
-          req.session.user = { email: user.email, name: user.profile_name, picture: user.picture };
+          req.session.user = user;
           res.redirect('/');
         } else {
           const createData = [userData.sub, userData.email, userData.name, userData.picture];
           return req.app.get('db').create_user(createData).then(newUsers => {
             const user = newUsers[0];
-            req.session.user = { email: user.email, name: user.profile_name, picture: user.picture };
+            req.session.user = user
             res.redirect('/');
           })
         }
-      });
-    });
-  }).catch(error => {
-    console.log('error in /auth/callback', error);
-    res.status(500).json({ message: 'An unexpected error occurred on the server.'})
-  });
-});
+      })
+  )
+}
+
+//Final Code
+  tradeCodeForAccessToken()
+  .then(response => tradeAccessTokenForUserInfo(response))
+  .then(userInfoResponse => storeUserInfoInDataBase(userInfoResponse));
+  })
 
 app.post('/api/logout', (req, res) => {
   req.session.destroy();
@@ -66,7 +94,7 @@ function checkLoggedIn(req, res, next) {
 }
 
 app.get('/api/secure-data', checkLoggedIn, (req, res) => {
-  res.json({ someSecureData: 123 });
+  res.json({ someSecureData: req.session.user.auth0_id + ' unique id for ' + req.session.user.profile_name});
 });
 
 const SERVER_PORT = process.env.SERVER_PORT || 3040;
