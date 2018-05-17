@@ -18,10 +18,11 @@ app.use(express.static(`${__dirname}/../build`));
 
 
 // STEP 1.)
-//send code recieved from client to auth0 to recieve back and access token
+//code for auth0 recieved from client side
+
 app.get('/auth/callback', (req, res) => {
 
-//object payload being send to auth0 that includes our code as req.query.code
+//object payload being sent to auth0 that includes our code we recieved from the client as req.query.code
 
 let payLoad = {
   client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
@@ -32,7 +33,7 @@ let payLoad = {
 }
 
 //STEP 2.)
-// trading above payload for access token
+// trading above payload for an access token
 
 function tradeCodeForAccessToken(){
   return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payLoad)
@@ -49,9 +50,9 @@ function tradeAccessTokenForUserInfo(accessTokenResponse){
 //STEP 4.)
 
 // store user info response in session and database
-function storeUserInfoInDataBase(userInfoResponse) {
+function storeUserInfoInDataBase(userInfo) {
 
-  const userData = userInfoResponse.data;
+  const userData = userInfo.data;
   return (
       req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
         if (users.length) {
@@ -72,8 +73,8 @@ function storeUserInfoInDataBase(userInfoResponse) {
 
 //Final Code
   tradeCodeForAccessToken()
-  .then(response => tradeAccessTokenForUserInfo(response))
-  .then(userInfoResponse => storeUserInfoInDataBase(userInfoResponse));
+  .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
+  .then(userInfo => storeUserInfoInDataBase(userInfo));
   })
 
 app.post('/api/logout', (req, res) => {
