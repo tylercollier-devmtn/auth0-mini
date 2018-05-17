@@ -77,6 +77,7 @@ function storeUserInfoInDataBase(userInfo) {
   .then(userInfo => storeUserInfoInDataBase(userInfo));
   })
 
+
 app.post('/api/logout', (req, res) => {
   req.session.destroy();
   res.send();
