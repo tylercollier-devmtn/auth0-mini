@@ -57,23 +57,21 @@ app.get('/auth/callback', (req, res) => {
   // store user info response in session and database
   function storeUserInfoInDataBase(userInfo) {
     const userData = userInfo.data;
-    console.log('hit' , 'userInfo', userData)
-    return (
-      req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
-        if (users.length) {
-          const user = users[0];
-          req.session.user = user;
+    console.log('hit' , 'userInfo', userData);
+    return req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
+      if (users.length) {
+        const user = users[0];
+        req.session.user = user;
+        res.redirect('/');
+      } else {
+        const createData = [userData.sub, userData.email, userData.name, userData.picture];
+        return req.app.get('db').create_user(createData).then(newUsers => {
+          const user = newUsers[0];
+          req.session.user = user
           res.redirect('/');
-        } else {
-          const createData = [userData.sub, userData.email, userData.name, userData.picture];
-          return req.app.get('db').create_user(createData).then(newUsers => {
-            const user = newUsers[0];
-            req.session.user = user
-            res.redirect('/');
-          })
-        }
-      })
-    )
+        });
+      }
+    });
   }
 
   //Final Code
