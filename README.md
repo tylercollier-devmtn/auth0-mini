@@ -156,7 +156,7 @@ In this step we are going to write the logic for our ```tradeCodeForAccessToken(
     * `grant_type`: hard-code to `authorization_code`
     * `redirect_uri`: `http://${req.headers.host}/auth/callback`
 * next were going to write the logic for our ```tradeCodeForAccessToken()``` function.
-* within our function we want to return a promise in the form of an `axios.post` to our Auth-0 Domain i.e (yourusername.auth0.com), in our post we will send the `payload` we built above;
+* within our function we want to return a promise in the form of an `axios.post` to our Auth-0 Domain (i.e ```process.env.REACT_APP_AUTH0_DOMAIN```) in our post we will send the `payload` we built above;
 
 
 <details>
@@ -206,7 +206,7 @@ function tradeAccessTokenForUserInfo(accessTokenResponse){
 
 ### Summary
 
-After trading our `access_token` for user information, we need to check and see if that user is already in our database, return thier info from the database and set that to sessions OR, if they are a new user we need to store thier information in the database which is then returned and set to session.
+After trading our `access_token` for user information, we need to check and see if that user is in our database, return thier info and set it to session OR, if they are a new user we need to store thier information in the database which is then returned and set to session.
 
 
 * For this step navigate to the ```function storeUserInfoInDataBase()``` and make sure we are taking in `userinfo` as a parameter.
