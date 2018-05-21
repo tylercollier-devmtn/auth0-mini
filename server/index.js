@@ -17,43 +17,48 @@ app.use(session({
 app.use(express.static(`${__dirname}/../build`));
 
 
-// STEP 1.)
-//code for auth0 recieved from client side
 
 app.get('/auth/callback', (req, res) => {
-
-//object payload being sent to auth0 that includes our code we recieved from the client as req.query.code
-
-let payLoad = {
-  client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
-  client_secret: process.env.REACT_APP_AUTH0_CLIENT_SECRET,
-  code: req.query.code,
-  grant_type: 'authorization_code',
-  redirect_uri: `http://${req.headers.host}/auth/callback`
-}
-
-//STEP 2.)
-// trading above payload for an access token
-
-function tradeCodeForAccessToken(){
-  return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payLoad)
-}
-
-//STEP 3.)
-// trade accesToken for user info
-
-function tradeAccessTokenForUserInfo(accessTokenResponse){
-  const accessToken = accessTokenResponse.data.access_token;
-  return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`) 
-}
-
-//STEP 4.)
-
-// store user info response in session and database
-function storeUserInfoInDataBase(userInfo) {
-
-  const userData = userInfo.data;
-  return (
+  
+  
+  
+  // STEP 1.)
+  //code for auth0 recieved from client side in req.query.code
+  //object payload being sent to auth0 that includes our code we recieved from the client as req.query.code
+  
+  var payLoad = {
+    client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
+    client_secret: process.env.REACT_APP_AUTH0_CLIENT_SECRET,
+    code: req.query.code,
+    grant_type: 'authorization_code',
+    redirect_uri: `http://${req.headers.host}/auth/callback`
+  }
+  
+  //STEP 2.)
+  // trading above payload for an access token
+  
+  function tradeCodeForAccessToken(){
+    console.log('hit' , 'tradeCodeForAccessToken')
+    return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payLoad)
+  }
+  
+  //STEP 3.)
+  // trade accesToken for user info
+  
+  function tradeAccessTokenForUserInfo(accessTokenResponse){
+    
+    console.log('hit' , 'accesToken')
+    const accessToken = accessTokenResponse.data.access_token;
+    return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`) 
+  }
+  
+  //STEP 4.)
+  
+  // store user info response in session and database
+  function storeUserInfoInDataBase(userInfo) {
+    const userData = userInfo.data;
+    console.log('hit' , 'userInfo', userData)
+    return (
       req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
         if (users.length) {
           const user = users[0];
@@ -68,14 +73,15 @@ function storeUserInfoInDataBase(userInfo) {
           })
         }
       })
-  )
-}
+    )
+  }
 
-//Final Code
+  //Final Code
   tradeCodeForAccessToken()
   .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
   .then(userInfo => storeUserInfoInDataBase(userInfo));
-  })
+  
+})
 
 
 app.post('/api/logout', (req, res) => {
