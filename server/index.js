@@ -20,61 +20,57 @@ app.use(express.static(`${__dirname}/../build`));
 
 app.get('/auth/callback', (req, res) => {
   
-  //Final Code, Uncomment after completeing steps 1-4 below
+  
+  
+  // STEP 1.)
+  //Make an object called payload with the code recieved from the clientside, client_id, client_secret, grant_type, redirect_uri 
+  //hint: code is recieved from client side as a query
+  
+  let payload ={
+    
+    // client_id
+    // client_secret
+    // code
+    // grant_type 
+    // redirect_uri
+    
+  }
+  
+  
+  //STEP 2.)
+  // WRITE a FUNCTION that RETURNS an axios POST with the payload as the body
+  function tradeCodeForAccessToken(){
+    
+    //code here..
+    
+  }
+  
+  //STEP 3.)
+  // WRITE a FUNCTION that accepts the access token as a parameter and RETURNS an axios GET to auth0 that passes the access token as a query
+  function tradeAccessTokenForUserInfo(){
+    
+    //code here ..
+    
+  }
+  
+  
+  //STEP 4.)
+  
+  // WRITE a FUNCTION that accepts the userInfo as a parameter and RETURNS a block of code.
+  // Your code should set session, check your database to see if user exists and return thier info or if they dont exist, insert them into the database
+  function storeUserInfoInDataBase(){
+    
+    //code here...
+    
+  }
+   
+  //Final Code, Uncomment after completeing steps 1-4 above
   
   // tradeCodeForAccessToken()
   // .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
   // .then(userInfo => storeUserInfoInDataBase(userInfo));
   // })
-
-
-  // STEP 1.)
-  //Make an object called payload with the code recieved from the clientside, client_id, client_secret, grant_type, redirect_uri 
-  //hint: code is recieved from client side as a query
-
-  let payload ={
-
-      // client_id
-      // client_secret
-      // code
-      // grant_type 
-      // redirect_uri
-
-  }
-
-
-    //STEP 2.)
-  // WRITE a FUNCTION that RETURNS an axios POST with the payload as the body
-  function tradeCodeForAccessToken(){
-
-    //code here..
-
-  }
-
-  //STEP 3.)
-  // WRITE a FUNCTION that accepts the access token as a parameter and RETURNS an axios GET to auth0 that passes the access token as a query
-  function tradeAccessTokenForUserInfo(){
-
-    //code here ..
-
-  }
-
-
-  //STEP 4.)
-
-  // WRITE a FUNCTION that accepts the userInfo as a parameter and RETURNS a block of code.
-  // Your code should set session, check your database to see if user exists and return thier info or if they dont exist, insert them into the database
-  function storeUserInfoInDataBase(){
-
-    //code here...
-
-  }
-
   
-
-  
-
-
 });
 
 app.post('/api/logout', (req, res) => {
