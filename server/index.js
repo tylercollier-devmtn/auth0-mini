@@ -17,12 +17,21 @@ app.use(session({
 app.use(express.static(`${__dirname}/../build`));
 
 
-// STEP 1.)
-//Make an object called payload with the code recieved from the clientside, client_id, client_secret, grant_type, redirect_uri 
-//hint: code is recieved from client side as a query
 
 app.get('/auth/callback', (req, res) => {
   
+  //Final Code, Uncomment after completeing steps 1-4 below
+  
+  // tradeCodeForAccessToken()
+  // .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
+  // .then(userInfo => storeUserInfoInDataBase(userInfo));
+  // })
+
+
+  // STEP 1.)
+  //Make an object called payload with the code recieved from the clientside, client_id, client_secret, grant_type, redirect_uri 
+  //hint: code is recieved from client side as a query
+
   let payload ={
 
       // client_id
@@ -61,15 +70,10 @@ app.get('/auth/callback', (req, res) => {
 
   }
 
-  //STEP 5.)
+  
 
-  //Chain all of your above functions together with .then 
+  
 
-  //Final Code
-  // tradeCodeForAccessToken()
-  // .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
-  // .then(userInfo => storeUserInfoInDataBase(userInfo));
-  // })
 
 });
 

@@ -5,6 +5,7 @@
 In this project, we'll use a service called Auth0 to do the heavy lifting of auth for us, including allowing for social integrations (github, google, etc).
 
 <img src='./Auth0 Flow(with title).svg' style='margin:20px 0px' width="100%" align="right">
+
 ## Setup
 
 * `Fork` and `clone` this repository.
@@ -109,7 +110,7 @@ In this step, we'll make changes to the project's proxy settings.
 
 ```json
 {
-  ...
+...
   "proxy": {
     "/auth/callback": {
       "target": "http://localhost:3040"
