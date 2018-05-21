@@ -1,10 +1,10 @@
-<img src='./Auth0 Flow(with title).svg' style='margin-bottom:20px' width="100%" align="right">
 
 
 # Project Summary
 
 In this project, we'll use a service called Auth0 to do the heavy lifting of auth for us, including allowing for social integrations (github, google, etc).
 
+<img src='./Auth0 Flow(with title).svg' style='margin:20px 0px' width="100%" align="right">
 ## Setup
 
 * `Fork` and `clone` this repository.
