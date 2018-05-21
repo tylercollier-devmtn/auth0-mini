@@ -125,11 +125,10 @@ In this step, we'll make changes to the project's proxy settings.
 
 ## Step 4
 
-### Summary
 
 If you look at the data flow image at the head of the instructions you'll notice there is a lot of back and forth going on between the server and Auth-0 in order to authenticate a user and get thier information. In order to better understand this process we are going to break it up into a few functions
 
- and look in your server file and you should see a line of code that look like 
+look in your server file and you should see a line of code (around line 69) that looks like this. 
 ```
   tradeCodeForAccessToken()
   .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
@@ -137,26 +136,86 @@ If you look at the data flow image at the head of the instructions you'll notice
   })
 ```
 
-In this step, we'll handle the authentication on the server side. After the user authenticates on Auth0, the browser is forwarded to your server's "callback" URL. You are given a `code` as a query string value. You need to send it to Auth0 to "exchange it" for an access token, and then send that access token to Auth0 to get user info. Store that user info in the database, unless it's already there.
+These are the functions we are going to build out over the next few steps.
+
+### Summary
+
+
+In this step we are going to write the logic for our ```tradeCodeForAccessToken()``` function. After the user authenticates on Auth0, the browser is forwarded to your server's "callback" URL. You are given a `code` as a query string value. You need to send it to Auth0 to "exchange it" for an access token
+
+* URL: Your Auth0 domain, with path `/oauth/token`
 
 ### Instructions
 
 * Open the `server/index.js` file.
-* Navigate to the code for the `/auth/callback` endpoint.
-* Make an axios POST request:
-  * URL: Your Auth0 domain, with path `/oauth/token`
-  * Data:
+* Navigate to the code for the `/auth/callback` endpoint and create an object with the following properties
+  * `Payload`:
     * `client_id`: The client ID from your `.env` file
     * `client_secret`: The client secret from your `.env` file
     * `code`: The request's query string's `code` value
     * `grant_type`: hard-code to `authorization_code`
     * `redirect_uri`: `http://${req.headers.host}/auth/callback`
-* With the axios response, you now have an access token. Send that token back to Auth0 to get user info:
-  * Make an axios GET request. The URL should be your Auth0 domain, with path `/userinfo/`, and query string `access_token` with the appropriate value.
-* With the axios response, the data will include a property called `sub`, which is short for `subject`, which is the user's ID inside the Auth0 system. Use that and `db/find_user_by_auth0_id.sql` to look up the user in the database.
+* next were going to write the logic for our ```tradeCodeForAccessToken()``` function.
+* within our function we want to return a promise in the form of an `axios.post` to our Auth-0 Domain i.e (yourusername.auth0.com), in our post we will send the `payload` we built above;
+
+
+<details>
+<summary><code>Solution</code></summary>
+
+```javascript
+
+var payLoad = {
+    client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
+    client_secret: process.env.REACT_APP_AUTH0_CLIENT_SECRET,
+    code: req.query.code,
+    grant_type: 'authorization_code',
+    redirect_uri: `http://${req.headers.host}/auth/callback`
+  }
+
+function tradeCodeForAccessToken(){
+    return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payLoad)
+  }
+
+```
+</details>
+
+## Step 5
+
+### Summary
+
+Now that we've made our function that trades the `code` we recieved from auth0 for an `access_token`, we want to build our next function which will send the access token back to Auth-0 in exchange for the user information.
+
+* Navigate to the ```tradeAccessTokenForUserInfo()``` function and make sure we are taking in an `access_token` as a parameter
+* Send the token back to Auth0 to get user info:
+  * Within your function logic return an axios GET request (i.e return a promise). The URL should be your Auth0 domain, with path `/userinfo/`, and query string `access_token` with the appropriate value.
+
+<details>
+<summary><code>Solution</code></summary>
+
+```javascript
+function tradeAccessTokenForUserInfo(accessTokenResponse){
+    
+    const accessToken = accessTokenResponse.data.access_token;
+    return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`) 
+
+  }
+```
+</details>
+
+## Step 6
+
+### Summary
+
+After trading our `access_token` for user information, we need to check and see if that user is already in our database, return thier info from the database and set that to sessions OR, if they are a new user we need to store thier information in the database which is then returned and set to session.
+
+
+* For this step navigate to the ```function storeUserInfoInDataBase()``` and make sure we are taking in `userinfo` as a parameter.
+
+* With the axios response returned from step 5, the data will include a property called `sub`, which is short for `subject`, which is the user's ID inside the Auth0 system. Use that and `db/find_user_by_auth0_id.sql` to look up the user in the database.
     * If a user is found, create a `user` object on the session that is that user object from the database, but only the fields email, profile_name as name, and picture. Send back a response with that user in a property called `user`.
     * If the user is not found, it means they have never logged in before. This is conceptually a "register" situation. Use the `sub`, `email`, `name`, and `picture` field from the response to create a user record. The `db/create_user.sql` file will be helpful for this.
       * After the record has been created, put the user object on the session in a property named `user`, but only the fields email, profile_name as name, and picture. Send back a response with that user in a property called `user`.
+
 * Be sure to put a `.catch()` on the outermost axios request, in case an error occurs.
   * Ensure all inner promises are returned, such that any errors are caught by the outer `.catch()`.
 
@@ -166,37 +225,32 @@ In this step, we'll handle the authentication on the server side. After the user
 <summary><code>server/index.js</code></summary>
 
 ```js
-app.get('/auth/callback', (req, res) => {
-  axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, {
-    client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
-    client_secret: process.env.REACT_APP_AUTH0_CLIENT_SECRET,
-    code: req.query.code,
-    grant_type: 'authorization_code',
-    redirect_uri: `http://${req.headers.host}/auth/callback`,
-  }).then(accessTokenResponse => {
-    const accessToken = accessTokenResponse.data.access_token;
-    return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`).then(userInfoResponse => {
-      const userData = userInfoResponse.data;
-      return req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
-        if (users.length) {
-          const user = users[0];
-          req.session.user = { email: user.email, name: user.profile_name, picture: user.picture };
+function storeUserInfoInDataBase(userInfo) {
+  const userData = userInfo.data;
+  
+  return (
+    req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
+
+      if (users.length) {
+
+        const user = users[0];
+        req.session.user = user;
+        res.redirect('/');
+
+      } else {
+        const createData = [userData.sub, userData.email, userData.name, userData.picture];
+
+        return req.app.get('db').create_user(createData).then(newUsers => {
+
+          const user = newUsers[0];
+          req.session.user = user
           res.redirect('/');
-        } else {
-          const createData = [userData.sub, userData.email, userData.name, userData.picture];
-          return req.app.get('db').create_user(createData).then(newUsers => {
-            const user = newUsers[0];
-            req.session.user = { email: user.email, name: user.profile_name, picture: user.picture };
-            res.redirect('/');
-          });
-        }
-      });
-    });
-  }).catch(error => {
-    console.log('error in /auth/callback', error);
-    res.status(500).json({ message: 'An unexpected error occurred on the server.'})
-  });
-});
+
+        })
+      }
+    })
+  )
+}
 ```
 </details>
 
