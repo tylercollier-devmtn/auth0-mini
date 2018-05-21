@@ -127,6 +127,16 @@ In this step, we'll make changes to the project's proxy settings.
 
 ### Summary
 
+If you look at the data flow image at the head of the instructions you'll notice there is a lot of back and forth going on between the server and Auth-0 in order to authenticate a user and get thier information. In order to better understand this process we are going to break it up into a few functions
+
+ and look in your server file and you should see a line of code that look like 
+```
+  tradeCodeForAccessToken()
+  .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
+  .then(userInfo => storeUserInfoInDataBase(userInfo));
+  })
+```
+
 In this step, we'll handle the authentication on the server side. After the user authenticates on Auth0, the browser is forwarded to your server's "callback" URL. You are given a `code` as a query string value. You need to send it to Auth0 to "exchange it" for an access token, and then send that access token to Auth0 to get user info. Store that user info in the database, unless it's already there.
 
 ### Instructions
