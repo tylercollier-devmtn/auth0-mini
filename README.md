@@ -1,4 +1,4 @@
-<img src='./Auth0 Flow.svg' width="100%" align="right">
+<img src='./Auth0 Flow(with title).svg' style='margin-bottom:20px' width="100%" align="right">
 
 
 # Project Summary
