@@ -4,7 +4,7 @@
 
 In this project, we'll use a service called Auth0 to do the heavy lifting of auth for us, including allowing for social integrations (github, google, etc).
 
-<img src='./Auth0 Flow(with title).svg' style='margin:20px 0px' width="100%" align="right">
+<img src='./auth0_flow.svg' style='margin:20px 0px' width="100%" align="right">
 
 ## Setup
 
@@ -212,7 +212,7 @@ After trading our `access_token` for user information, we need to check and see 
 * For this step navigate to the ```function storeUserInfoInDataBase()``` and make sure we are taking in `userinfo` as a parameter.
 
 * With the axios response returned from step 5, the data will include a property called `sub`, which is short for `subject`, which is the user's ID inside the Auth0 system. Use that and `db/find_user_by_auth0_id.sql` to look up the user in the database.
-    * If a user is found, create a `user` object on the session that is that user object from the database, but only the fields email, profile_name as name, and picture. Send back a response with that user in a property called `user`.
+    * If a user is found, set the user data that gets returned from your database onto the user property of req.session. .
     * If the user is not found, it means they have never logged in before. This is conceptually a "register" situation. Use the `sub`, `email`, `name`, and `picture` field from the response to create a user record. The `db/create_user.sql` file will be helpful for this.
       * After the record has been created, put the user object on the session in a property named `user`, but only the fields email, profile_name as name, and picture. Send back a response with that user in a property called `user`.
 
