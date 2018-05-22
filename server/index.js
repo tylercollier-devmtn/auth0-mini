@@ -38,7 +38,6 @@ app.get('/auth/callback', (req, res) => {
   // trading above payload for an access token
   
   function tradeCodeForAccessToken(){
-    console.log('hit' , 'tradeCodeForAccessToken')
     return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payLoad)
   }
   
@@ -47,7 +46,6 @@ app.get('/auth/callback', (req, res) => {
   
   function tradeAccessTokenForUserInfo(accessTokenResponse){
     
-    console.log('hit' , 'accesToken')
     const accessToken = accessTokenResponse.data.access_token;
     return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`) 
   }
@@ -57,7 +55,6 @@ app.get('/auth/callback', (req, res) => {
   // store user info response in session and database
   function storeUserInfoInDataBase(userInfo) {
     const userData = userInfo.data;
-    console.log('hit' , 'userInfo', userData);
     return req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
       if (users.length) {
         const user = users[0];
@@ -77,7 +74,8 @@ app.get('/auth/callback', (req, res) => {
   //Final Code
   tradeCodeForAccessToken()
   .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
-  .then(userInfo => storeUserInfoInDataBase(userInfo));
+  .then(userInfo => storeUserInfoInDataBase(userInfo))
+  .catch(err => console.log('error', err))
   
 })
 
