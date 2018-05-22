@@ -156,7 +156,7 @@ In this step we are going to write the logic for our ```tradeCodeForAccessToken(
     * `grant_type`: hard-code to `authorization_code`
     * `redirect_uri`: `http://${req.headers.host}/auth/callback`
 * next were going to write the logic for our ```tradeCodeForAccessToken()``` function.
-* within our function we want to return a promise in the form of an `axios.post` to our Auth-0 Domain (i.e ```process.env.REACT_APP_AUTH0_DOMAIN```) in our post we will send the `payload` we built above;
+* within our function we want to return a promise in the form of an `axios.post` to our Auth-0 Domain with the path `/oauth/token` (i.e ```https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token```). In our post request we will send the `payload` we built above;
 
 
 <details>
@@ -183,7 +183,7 @@ function tradeCodeForAccessToken(){
 
 ### Summary
 
-Now that we've made our function that trades the `code` we recieved from auth0 for an `access_token`, we want to build our next function which will send the access token back to Auth-0 in exchange for the user information.
+Now that we've made our function that trades the `code` we recieved from auth0 for an `access_token`, we want to send the access token back to Auth-0 in exchange for the user information.
 
 * Navigate to the ```tradeAccessTokenForUserInfo()``` function and make sure we are taking in an `access_token` as a parameter
 * Send the token back to Auth0 to get user info:
@@ -211,8 +211,8 @@ After trading our `access_token` for user information, we need to check and see 
 
 * For this step navigate to the ```function storeUserInfoInDataBase()``` and make sure we are taking in `userinfo` as a parameter.
 
-* With the axios response returned from step 5, the data will include a property called `sub`, which is short for `subject`, which is the user's ID inside the Auth0 system. Use that and `db/find_user_by_auth0_id.sql` to look up the user in the database.
-    * If a user is found, set the user data that gets returned from your database onto the user property of req.session. .
+* The axios response (i.e user data) returned from step 5 should include a property called `sub`, which is short for `subject`, which is the user's ID inside the Auth0 system. Use that and `db/find_user_by_auth0_id.sql` to look up the user in the database.
+    * If a user is found, set the user data that gets returned from your database onto the user property of req.session.
     * If the user is not found, it means they have never logged in before. This is conceptually a "register" situation. Use the `sub`, `email`, `name`, and `picture` field from the response to create a user record. The `db/create_user.sql` file will be helpful for this.
       * After the record has been created, put the user object on the session in a property named `user`, but only the fields email, profile_name as name, and picture. Send back a response with that user in a property called `user`.
 
@@ -251,6 +251,16 @@ function storeUserInfoInDataBase(userInfo) {
     })
   )
 }
+
+
+//Final code to be run at the end
+
+// tradeCodeForAccessToken()
+  // .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
+  // .then(userInfo => storeUserInfoInDataBase(userInfo));
+  // }).catch(err => console.log(err))
+
+
 ```
 </details>
 
