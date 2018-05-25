@@ -1,10 +1,8 @@
-
+<img src="https://devmounta.in/img/logowhiteblue.png" width="250" align="right">
 
 # Project Summary
 
 In this project, we'll use a service called Auth0 to do the heavy lifting of auth for us, including allowing for social integrations (github, google, etc).
-
-<img src='./auth0_flow.svg' style='margin:20px 0px' width="100%" align="right">
 
 ## Setup
 
@@ -48,6 +46,12 @@ In this step, we'll go to `manage.auth0.com` to create an account. We'll create 
   * Then click the Github connection to configure it. In the Attributes section, check Email address. Leave the Client ID and Client Secret sections blank, such that you'll be using Auth0's dev keys. Click Save.
   * Enable further social connections as desired.
 
+### Data flow
+
+Here's a diagram of the flow of information that we'll be using in this project:
+
+<img src='./auth0_flow.svg' style='margin:20px 0px' width="100%" align="right">
+
 ## Step 2
 
 ### Summary
@@ -85,7 +89,7 @@ class App extends Component {
 
   login() {
     const redirectUri = encodeURIComponent(`${window.location.origin}/auth/callback`);
-    window.location = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/authorize?client_id=${process.env.REACT_APP_AUTH0_CLIENT_ID}&scope=openid%20profile%20email&redirect_uri=${redirectUri}&response_type=code`
+    window.location = `https://${process.env.REACT_APP_AUTH0_DOMAIN}/authorize?client_id=${process.env.REACT_APP_AUTH0_CLIENT_ID}&scope=openid%20profile%20email&redirect_uri=${redirectUri}&response_type=code`;
   }
 ```
 </details>
@@ -110,7 +114,7 @@ In this step, we'll make changes to the project's proxy settings.
 
 ```json
 {
-...
+  ...
   "proxy": {
     "/auth/callback": {
       "target": "http://localhost:3040"
@@ -125,57 +129,50 @@ In this step, we'll make changes to the project's proxy settings.
 
 ## Step 4
 
+If you look at the data flow image at the end of step 1, you'll notice there is a lot of back and forth going on between the server and Auth0 in order to authenticate a user and get their information. In order to better understand this process we are going to break it up into a few functions.
 
-If you look at the data flow image at the head of the instructions you'll notice there is a lot of back and forth going on between the server and Auth-0 in order to authenticate a user and get thier information. In order to better understand this process we are going to break it up into a few functions
+Look in your server file in the handler for the endpoint `/auth/callback`, and you should see a section of code that looks like this:
 
-look in your server file and you should see a line of code (around line 69) that looks like this. 
-```
-  tradeCodeForAccessToken()
+```javascript
+tradeCodeForAccessToken()
   .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
-  .then(userInfo => storeUserInfoInDataBase(userInfo));
-  })
+  .then(userInfo => storeUserInfoInDataBase(userInfo))
+  .catch(...)
 ```
 
-These are the functions we are going to build out over the next few steps.
+That code matches the data flow diagram steps 5-9. The functions definitions already exist in the code, but have no bodies. You need to fill in the function bodies for each.
 
 ### Summary
 
-
-In this step we are going to write the logic for our ```tradeCodeForAccessToken()``` function. After the user authenticates on Auth0, the browser is forwarded to your server's "callback" URL. You are given a `code` as a query string value. You need to send it to Auth0 to "exchange it" for an access token
-
-* URL: Your Auth0 domain, with path `/oauth/token`
+In this step we're going to write the logic for our `tradeCodeForAccessToken()` function. After the user authenticates on Auth0, the browser is forwarded to your server's "callback" URL. You are given a `code` as a query string value. You need to send it to Auth0 to "exchange" it for an access token.
 
 ### Instructions
 
 * Open the `server/index.js` file.
-* Navigate to the code for the `/auth/callback` endpoint and create an object with the following properties
-  * `Payload`:
-    * `client_id`: The client ID from your `.env` file
-    * `client_secret`: The client secret from your `.env` file
-    * `code`: The request's query string's `code` value
-    * `grant_type`: hard-code to `authorization_code`
-    * `redirect_uri`: `http://${req.headers.host}/auth/callback`
-* next were going to write the logic for our ```tradeCodeForAccessToken()``` function.
-* within our function we want to return a promise in the form of an `axios.post` to our Auth-0 Domain with the path `/oauth/token` (i.e ```https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token```). In our post request we will send the `payload` we built above;
-
+* Navigate to the handler for the `/auth/callback` endpoint. Create an object named `payload` with the following properties:
+  * `client_id`: The client ID from your `.env` file
+  * `client_secret`: The client secret from your `.env` file
+  * `code`: The request's query string's `code` value
+  * `grant_type`: hard-code to `authorization_code`
+  * `redirect_uri`: `http://${req.headers.host}/auth/callback`
+* Next we're going to write the logic for our `tradeCodeForAccessToken()` function.
+  * Within our function we want to return a promise in the form of an `axios.post` to our Auth0 domain with the path `/oauth/token` (i.e `https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`). In our post request we'll send the `payload` we built above.
 
 <details>
 <summary><code>Solution</code></summary>
 
 ```javascript
+const payload = {
+  client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
+  client_secret: process.env.REACT_APP_AUTH0_CLIENT_SECRET,
+  code: req.query.code,
+  grant_type: 'authorization_code',
+  redirect_uri: `http://${req.headers.host}/auth/callback`
+};
 
-var payLoad = {
-    client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
-    client_secret: process.env.REACT_APP_AUTH0_CLIENT_SECRET,
-    code: req.query.code,
-    grant_type: 'authorization_code',
-    redirect_uri: `http://${req.headers.host}/auth/callback`
-  }
-
-function tradeCodeForAccessToken(){
-    return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payLoad)
-  }
-
+function tradeCodeForAccessToken() {
+  return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payload);
+}
 ```
 </details>
 
@@ -183,22 +180,20 @@ function tradeCodeForAccessToken(){
 
 ### Summary
 
-Now that we've made our function that trades the `code` we recieved from auth0 for an `access_token`, we want to send the access token back to Auth-0 in exchange for the user information.
+Now that we've made our function that trades the `code` we received from Auth0 for an `access_token`, we want to send the access token back to Auth0 in exchange for the user information.
 
-* Navigate to the ```tradeAccessTokenForUserInfo()``` function and make sure we are taking in an `access_token` as a parameter
-* Send the token back to Auth0 to get user info:
-  * Within your function logic return an axios GET request (i.e return a promise). The URL should be your Auth0 domain, with path `/userinfo/`, and query string `access_token` with the appropriate value.
+* Navigate to the `tradeAccessTokenForUserInfo()` function. Give it a parameter that represents the response from the previous post to axios.
+* In the function, send the token back to Auth0 to get user info:
+  * Return an axios GET request (i.e return a promise). The URL should be your Auth0 domain, with path `/userinfo/`, and query string parameter `access_token` with the appropriate value.
 
 <details>
 <summary><code>Solution</code></summary>
 
 ```javascript
-function tradeAccessTokenForUserInfo(accessTokenResponse){
-    
-    const accessToken = accessTokenResponse.data.access_token;
-    return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`) 
-
-  }
+function tradeAccessTokenForUserInfo(accessTokenResponse) {
+  const accessToken = accessTokenResponse.data.access_token;
+  return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`);
+}
 ```
 </details>
 
@@ -206,18 +201,13 @@ function tradeAccessTokenForUserInfo(accessTokenResponse){
 
 ### Summary
 
-After trading our `access_token` for user information, we need to check and see if that user is in our database, return thier info and set it to session OR, if they are a new user we need to store thier information in the database which is then returned and set to session.
+After trading our `access_token` for user information, we need to check and see if that user is in our database. If they're in the database already, put their info in the session. If they're not in the database, put their info in the database, then set it in the session. Either way, redirect the user back to your site.
 
-
-* For this step navigate to the ```function storeUserInfoInDataBase()``` and make sure we are taking in `userinfo` as a parameter.
-
-* The axios response (i.e user data) returned from step 5 should include a property called `sub`, which is short for `subject`, which is the user's ID inside the Auth0 system. Use that and `db/find_user_by_auth0_id.sql` to look up the user in the database.
-    * If a user is found, set the user data that gets returned from your database onto the user property of req.session.
-    * If the user is not found, it means they have never logged in before. This is conceptually a "register" situation. Use the `sub`, `email`, `name`, and `picture` field from the response to create a user record. The `db/create_user.sql` file will be helpful for this.
-      * After the record has been created, put the user object on the session in a property named `user`, but only the fields email, profile_name as name, and picture. Send back a response with that user in a property called `user`.
-
-* Be sure to put a `.catch()` on the outermost axios request, in case an error occurs.
-  * Ensure all inner promises are returned, such that any errors are caught by the outer `.catch()`.
+* For this step navigate to the `storeUserInfoInDataBase()` function and make sure we are taking in `userInfoResponse` as a parameter, which represents the result from the previous GET to axios.
+* The axios response (i.e user data) returned from step 5 includes a property called `sub`. `sub` is short for "subject", and is the user's ID inside the Auth0 system. Use that and `db/find_user_by_auth0_id.sql` to look up the user in the database.
+  * If a user is found, set the user data that gets returned from your database onto the user property of `req.session`.
+  * If the user is not found, it means they have never logged in before. This is conceptually a "register" situation. Use the `sub`, `email`, `name`, and `picture` field from the response to create a user record. The `db/create_user.sql` file will be helpful for this.
+    * After the record has been created, put the user object on the session in a property named `user`, but only the fields email, profile_name as name, and picture. Send back a response with that user in a property called `user`.
 
 ### Solution
 
@@ -225,42 +215,31 @@ After trading our `access_token` for user information, we need to check and see 
 <summary><code>server/index.js</code></summary>
 
 ```js
-function storeUserInfoInDataBase(userInfo) {
-  const userData = userInfo.data;
-  
-  return (
-    req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
+function storeUserInfoInDataBase(userInfoResponse) {
+  const userData = userInfoResponse.data;
 
-      if (users.length) {
-
-        const user = users[0];
-        req.session.user = user;
+  return req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
+    if (users.length) {
+      const user = users[0];
+      req.session.user = user;
+      res.redirect('/');
+    } else {
+      const createData = [userData.sub, userData.email, userData.name, userData.picture];
+      return req.app.get('db').create_user(createData).then(newUsers => {
+        const user = newUsers[0];
+        req.session.user = user
         res.redirect('/');
-
-      } else {
-        const createData = [userData.sub, userData.email, userData.name, userData.picture];
-
-        return req.app.get('db').create_user(createData).then(newUsers => {
-
-          const user = newUsers[0];
-          req.session.user = user
-          res.redirect('/');
-
-        })
-      }
-    })
-  )
+      })
+    }
+  })
 }
 
-
-//Final code to be run at the end
+// Final code to be run at the end
 
 // tradeCodeForAccessToken()
-  // .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
-  // .then(userInfo => storeUserInfoInDataBase(userInfo));
-  // }).catch(err => console.log(err))
-
-
+//   .then(tradeAccessTokenForUserInfo)
+//   .then(storeUserInfoInDataBase)
+//   .catch(...)
 ```
 </details>
 
