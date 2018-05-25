@@ -17,60 +17,60 @@ app.use(session({
 app.use(express.static(`${__dirname}/../build`));
 
 
-// STEP 1.)
-//Make an object called payload with the code recieved from the clientside, client_id, client_secret, grant_type, redirect_uri 
-//hint: code is recieved from client side as a query
 
 app.get('/auth/callback', (req, res) => {
   
+  
+  
+  // STEP 1.)
+  //Make an object called payload with the code recieved from the clientside, client_id, client_secret, grant_type, redirect_uri 
+  //hint: code is recieved from client side as a query
+  
   let payload ={
-
-      // client_id
-      // client_secret
-      // code
-      // grant_type 
-      // redirect_uri
-
+    
+    // client_id
+    // client_secret
+    // code
+    // grant_type 
+    // redirect_uri
+    
   }
-
-
-    //STEP 2.)
+  
+  
+  //STEP 2.)
   // WRITE a FUNCTION that RETURNS an axios POST with the payload as the body
   function tradeCodeForAccessToken(){
-
+    
     //code here..
-
+    
   }
-
+  
   //STEP 3.)
   // WRITE a FUNCTION that accepts the access token as a parameter and RETURNS an axios GET to auth0 that passes the access token as a query
   function tradeAccessTokenForUserInfo(){
-
+    
     //code here ..
-
+    
   }
-
-
+  
+  
   //STEP 4.)
-
+  
   // WRITE a FUNCTION that accepts the userInfo as a parameter and RETURNS a block of code.
   // Your code should set session, check your database to see if user exists and return thier info or if they dont exist, insert them into the database
   function storeUserInfoInDataBase(){
-
+    
     //code here...
-
+    
   }
-
-  //STEP 5.)
-
-  //Chain all of your above functions together with .then 
-
-  //Final Code
+   
+  //Final Code, Uncomment after completeing steps 1-4 above
+  
   // tradeCodeForAccessToken()
   // .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
   // .then(userInfo => storeUserInfoInDataBase(userInfo));
   // })
-
+  
 });
 
 app.post('/api/logout', (req, res) => {
