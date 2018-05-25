@@ -62,9 +62,8 @@ app.get('/auth/callback', (req, res) => {
   .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
   .then(userInfo => storeUserInfoInDataBase(userInfo))
   .catch(error => {
-    const message = 'An error occurred on the server. See the terminal.';
-    console.log('Server error: ' + message);
-    res.status(500).json({ message });
+    console.log('Server error: ' + error);
+    res.status(500).send('An error occurred on the server. See the terminal.');
   });
 });
 
