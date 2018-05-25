@@ -16,17 +16,9 @@ app.use(session({
 }));
 app.use(express.static(`${__dirname}/../build`));
 
-
-
 app.get('/auth/callback', (req, res) => {
-  
-  
-  
-  // STEP 1.)
-  //code for auth0 recieved from client side in req.query.code
-  //object payload being sent to auth0 that includes our code we recieved from the client as req.query.code
-  
-  var payLoad = {
+  // Create a payload to send to Auth0. Include the "auth code" we received (req.query.code).
+  const payload = {
     client_id: process.env.REACT_APP_AUTH0_CLIENT_ID,
     client_secret: process.env.REACT_APP_AUTH0_CLIENT_SECRET,
     code: req.query.code,
@@ -34,25 +26,18 @@ app.get('/auth/callback', (req, res) => {
     redirect_uri: `http://${req.headers.host}/auth/callback`
   }
   
-  //STEP 2.)
-  // trading above payload for an access token
-  
-  function tradeCodeForAccessToken(){
-    return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payLoad)
+  // Trade above payload for an access token.
+  function tradeCodeForAccessToken() {
+    return axios.post(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/oauth/token`, payload);
   }
-  
-  //STEP 3.)
-  // trade accesToken for user info
-  
-  function tradeAccessTokenForUserInfo(accessTokenResponse){
-    
+
+  // Trade acces token for user info.
+  function tradeAccessTokenForUserInfo(accessTokenResponse) {
     const accessToken = accessTokenResponse.data.access_token;
-    return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`) 
+    return axios.get(`https://${process.env.REACT_APP_AUTH0_DOMAIN}/userinfo/?access_token=${accessToken}`);
   }
   
-  //STEP 4.)
-  
-  // store user info response in session and database
+  // Store user info in session and database.
   function storeUserInfoInDataBase(userInfo) {
     const userData = userInfo.data;
     return req.app.get('db').find_user_by_auth0_id(userData.sub).then(users => {
@@ -71,14 +56,17 @@ app.get('/auth/callback', (req, res) => {
     });
   }
 
-  //Final Code
+  // Final code to be run at the end
+
   tradeCodeForAccessToken()
   .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
   .then(userInfo => storeUserInfoInDataBase(userInfo))
-  .catch(err => console.log('error', err))
-  
-})
-
+  .catch(error => {
+    const message = 'An error occurred on the server. See the terminal.';
+    console.log('Server error: ' + message);
+    res.status(500).json({ message });
+  });
+});
 
 app.post('/api/logout', (req, res) => {
   req.session.destroy();
