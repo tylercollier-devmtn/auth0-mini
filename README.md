@@ -10,7 +10,7 @@ In this project, we'll use a service called Auth0 to do the heavy lifting of aut
 * `cd` into the project directory.
 * Run `yarn`. You know to use yarn instead of npm because there is a `yarn.lock` file.
 * Create a Postgres database. Use this project's `db/init.sql` file to create the schema.
-* Copy the `env.example` file to a new file called `.env` and paste in the connection string to the postgres database.
+* Copy the `.env.example` file to a new file called `.env` and paste in the connection string to the postgres database.
   * While you're there, fill out some random value for the SESSION_SECRET value.
   * We'll fill out the other values in the `.env` file later.
 * Start the server with `nodemon`.
