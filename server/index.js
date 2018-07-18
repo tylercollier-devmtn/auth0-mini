@@ -22,54 +22,51 @@ app.get('/auth/callback', (req, res) => {
   
   
   
-  // STEP 1.)
-  //Make an object called payload with the code recieved from the clientside, client_id, client_secret, grant_type, redirect_uri 
-  //hint: code is recieved from client side as a query
+  // STEP 1.
+  // Make an object called payload with the code recieved from the clientside, client_id, client_secret, grant_type, redirect_uri 
+  // Hint: 'code' is recieved from client side as a query
   
-  let payload ={
-    
+  const payload = {
     // client_id
     // client_secret
     // code
     // grant_type 
     // redirect_uri
+  };
+  
+  
+  // STEP 2.
+  // Write a function that returns an axios POST with the payload as the body.
+  function tradeCodeForAccessToken() {
+    
+    // code here...
+    
+  }
+  
+  // STEP 3.
+  // Write a function that accepts the access token as a parameter and returns an axios GET to Auth0 that passes the access token as a query.
+  function tradeAccessTokenForUserInfo() {
+    
+    // code here ...
     
   }
   
   
-  //STEP 2.)
-  // WRITE a FUNCTION that RETURNS an axios POST with the payload as the body
-  function tradeCodeForAccessToken(){
-    
-    //code here..
-    
-  }
-  
-  //STEP 3.)
-  // WRITE a FUNCTION that accepts the access token as a parameter and RETURNS an axios GET to auth0 that passes the access token as a query
-  function tradeAccessTokenForUserInfo(){
-    
-    //code here ..
-    
-  }
-  
-  
-  //STEP 4.)
-  
-  // WRITE a FUNCTION that accepts the userInfo as a parameter and RETURNS a block of code.
-  // Your code should set session, check your database to see if user exists and return thier info or if they dont exist, insert them into the database
-  function storeUserInfoInDataBase(){
+  // STEP 4.
+  // Write a function that accepts the userInfo as a parameter and returns a block of code.
+  // Your code should set session, check your database to see if user exists and return their info or if they don't exist, insert them into the database.
+  function storeUserInfoInDataBase() {
     
     //code here...
     
   }
    
-  //Final Code, Uncomment after completeing steps 1-4 above
+  // Final code; uncomment after completing steps 1-4 above.
   
   // tradeCodeForAccessToken()
   // .then(accessToken => tradeAccessTokenForUserInfo(accessToken))
   // .then(userInfo => storeUserInfoInDataBase(userInfo));
-  // })
+  // });
   
 });
 
