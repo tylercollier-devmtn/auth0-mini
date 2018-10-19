@@ -102,30 +102,27 @@ In this step, we'll make changes to the project's proxy settings.
 
 ### Instructions
 
-* Open the `package.json` file in the project root.
-* Change the proxy from proxying all non text/html requests going to the Node/Express server to instead explicitly proxy:
-  * `/auth/callback`
-  * `/api`
+* Use yarn to add a package to the project called `http-proxy-middleware`.
+* Create a file in the `src` folder called `setupProxy.js`. This is a special file that create-react-app looks for to find optional proxy configuration steps. In `setupProxy.js`:
+  * Require the `http-proxy-middleware` package as a variable named `proxy`.
+  * Export a function that takes in an `app` parameter, and does `app.use()` calls to change the proxy's default behavior from proxying all non text/html requests going to the Node/Express server to instead explicitly proxy any routes starting with:
+    * `/auth/callback`
+    * `/api`
 
-  This allows us to handle these routes on the server; all other routes will be handled by the create-react-app dev server.
+    This allows us to handle these routes on the server; all other routes will be handled by the create-react-app dev server.
 
 ### Solution
 
 <details>
-<summary><code>package.json</code></summary>
+<summary><code>src/setupProxy.js</code></summary>
 
-```json
-{
-  ...
-  "proxy": {
-    "/auth/callback": {
-      "target": "http://localhost:3040"
-    },
-    "/api": {
-      "target": "http://localhost:3040"
-    }
-  }
-}
+```javascript
+const proxy = require('http-proxy-middleware');
+
+module.exports = app => {
+  app.use(proxy('/auth/callback', { target: 'http://localhost:3040' }));
+  app.use(proxy('/api', { target: 'http://localhost:3040' }));
+};
 ```
 </details>
 
